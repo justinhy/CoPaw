@@ -1,0 +1,449 @@
+# CoPaw Desktop - AI Voice Companion Application Specification
+
+## Project Overview
+
+**Project Name**: CoPaw Desktop
+**Version**: 0.1.0
+**Target Platforms**: Ubuntu (GNOME/KDE), Windows 10/11
+**Architecture Pattern**: MVVM (Model-View-ViewModel) with Clean Architecture
+**Development Methodology**: TDD (Test-Driven Development) with Discrete Session Workflow
+
+---
+
+## System Architecture
+
+### High-Level Architecture Diagram
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                     PyQt6 GUI Layer (View)                      │
+│  ┌──────────┬──────────────────┬──────────────────────────────┐│
+│  │ Session  │   Chat Panel     │      Dynamic Panel          ││
+│  │ List     │   (Messages)     │  (Images/Charts/Markdown)   ││
+│  │ (Left)   │   (Middle)       │      (Right)                ││
+│  └──────────┴──────────────────┴──────────────────────────────┘│
+└────────────────────────┬────────────────────────────────────────┘
+                         │ Signals/Slots (Qt)
+┌────────────────────────┴────────────────────────────────────────┐
+│                   Application Core (ViewModel)                  │
+│  ┌──────────────────────────────────────────────────────────┐  │
+│  │  State Manager (IDLE/LISTENING/PROCESSING/SPEAKING)      │  │
+│  └──────────────────────────────────────────────────────────┘  │
+│  ┌──────────────────────────────────────────────────────────┐  │
+│  │  Message Bus (Signal-based pub/sub for components)       │  │
+│  └──────────────────────────────────────────────────────────┘  │
+└────────────────────────┬────────────────────────────────────────┘
+                         │
+┌────────────────────────┴────────────────────────────────────────┐
+│                     Core Engine (Model)                         │
+│  ┌──────────────┬──────────────┬──────────────┬──────────────┐ │
+│  │ Audio        │ Cloud        │ Network      │ Data Layer   │ │
+│  │ Pipeline     │ Services     │ Layer        │ (SQLite)     │ │
+│  │ - Recorder   │ - ASR Client │ - WS Client  │ - SessionDB  │ │
+│  │ - VAD        │ - TTS Client │ - Reconnect  │ - Models     │ │
+│  └──────────────┴──────────────┴──────────────┴──────────────┘ │
+└────────────────────────┬────────────────────────────────────────┘
+                         │ WebSocket Protocol
+┌────────────────────────┴────────────────────────────────────────┐
+│              CoPaw Core (External Service)                      │
+│  ┌──────────────────────────────────────────────────────────┐  │
+│  │  DesktopChannel (BaseChannel subclass)                   │  │
+│  │  - WebSocket endpoint at /ws/desktop                     │  │
+│  │  - Receives text, returns streaming response + widgets   │  │
+│  └──────────────────────────────────────────────────────────┘  │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## Component Specifications
+
+### 1. CoPaw Integration Layer (Server-Side)
+
+**Component**: `DesktopChannel` (in CoPaw core)
+**Location**: `copaw/app/channels/desktop/`
+**Parent Class**: `BaseChannel`
+
+**Responsibilities**:
+- Expose WebSocket endpoint at `ws://host:port/ws/desktop`
+- Convert incoming JSON messages to `AgentRequest`
+- Stream agent responses back to client
+- Support widget actions (images, charts, markdown) in response payload
+
+**Protocol**:
+
+Client → Server (Text Message):
+```json
+{
+  "type": "text",
+  "content": "用户输入的文本",
+  "session_id": "uuid-string"
+}
+```
+
+Server → Client (Streaming Response):
+```json
+{
+  "type": "text_chunk",
+  "content": "部分文本",
+  "is_final": false
+}
+```
+
+```json
+{
+  "type": "widget",
+  "widget_type": "image",
+  "data": {
+    "url": "https://example.com/image.png"
+  }
+}
+```
+
+```json
+{
+  "type": "widget",
+  "widget_type": "chart",
+  "data": {
+    "option": {"xAxis": {...}, "series": [...]}
+  }
+}
+```
+
+---
+
+### 2. Core Engine Components (Client-Side)
+
+#### 2.1 Network Layer (`core/network.py`)
+
+**Class**: `WebSocketClient`
+
+**Key Methods**:
+- `connect(url: str) -> bool`: Establish connection with retry logic
+- `send(message: dict) -> None`: Queue message for sending
+- `disconnect() -> None`: Graceful shutdown
+- `on_message(callback: Callable) -> None`: Register message handler
+
+**State Machine**:
+- `DISCONNECTED` → `CONNECTING` → `CONNECTED` → `DISCONNECTED`
+- Auto-reconnect with exponential backoff (1s, 2s, 4s, max 30s)
+
+#### 2.2 Audio Pipeline (`core/audio.py`)
+
+**Class**: `AudioRecorder` (runs in QThread)
+
+**Key Features**:
+- Continuous microphone capture using PyAudio
+- VAD integration (Silero VAD preferred)
+- Automatic sentence segmentation on 1.5s silence
+- Mute control for TTS playback (echo prevention)
+
+**Signals**:
+- `audio_chunk_ready(bytes)`: Emitted when complete sentence detected
+- `recording_started()`: VAD detected speech start
+- `recording_stopped()`: VAD detected silence
+
+#### 2.3 Cloud Services (`core/asr.py`, `core/tts.py`)
+
+**ASR Client Interface**:
+```python
+class ASRClient(ABC):
+    @abstractmethod
+    async def transcribe(self, audio_bytes: bytes) -> str:
+        pass
+```
+
+**Recommended Implementation**: Alibaba Cloud ASR (DashScope) or OpenAI Whisper API
+
+**TTS Client Interface**:
+```python
+class TTSClient(ABC):
+    @abstractmethod
+    async def synthesize(self, text: str, voice: str = "default") -> bytes:
+        pass
+```
+
+**Recommended Implementation**: edge-tts (Microsoft Edge TTS, free and high quality)
+
+#### 2.4 Data Layer (`core/models.py`, `core/database.py`)
+
+**SQLAlchemy Models**:
+
+```python
+class Session(Base):
+    __tablename__ = "sessions"
+    id = Column(String, primary_key=True)
+    started_at = Column(DateTime, default=datetime.utcnow)
+    title = Column(String, nullable=True)
+    messages = relationship("Message", back_populates="session")
+
+class Message(Base):
+    __tablename__ = "messages"
+    id = Column(String, primary_key=True)
+    session_id = Column(String, ForeignKey("sessions.id"))
+    role = Column(String)  # "user" or "assistant"
+    content = Column(Text)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    widget_data = Column(JSON, nullable=True)  # For images/charts
+    session = relationship("Session", back_populates="messages")
+```
+
+**SessionDB Methods**:
+- `create_session() -> Session`
+- `get_sessions_grouped_by_hour() -> Dict[date, Dict[hour, List[Session]]]`
+- `add_message(session_id, role, content, widget_data=None) -> Message`
+- `get_messages(session_id) -> List[Message]`
+
+---
+
+### 3. GUI Layer Components
+
+#### 3.1 Main Window (`gui/main_window.py`)
+
+**Layout**:
+- `QMainWindow` with central widget
+- `QHBoxLayout` with `QSplitter` for resizable panels
+- Left: 20%, Middle: 40%, Right: 40% (initial ratios)
+
+**Fullscreen Behavior**:
+- Call `showFullScreen()` on startup
+- Support `F11` or `Esc` to toggle (configurable)
+- Hide menu bar and status bar in fullscreen mode
+
+#### 3.2 Left Panel - Session List (`gui/widgets/session_list.py`)
+
+**Widget**: `QTreeWidget`
+
+**Hierarchy**:
+```
+├── 2026-03-08
+│   ├── 14:00 - 15:00
+│   │   ├── Session 1 (14:23)
+│   │   └── Session 2 (14:45)
+│   └── 15:00 - 16:00
+│       └── Session 3 (15:12)
+└── 2026-03-07
+    └── ...
+```
+
+**Behavior**:
+- Click on session → Load messages in ChatPanel
+- Auto-refresh when new session created
+- Scroll to latest session
+
+#### 3.3 Middle Panel - Chat Panel (`gui/widgets/chat_panel.py`)
+
+**Widget**: `QScrollArea` with `QVBoxLayout`
+
+**Message Bubble Styles**:
+- User: Right-aligned, blue background
+- Assistant: Left-aligned, gray background
+- Markdown support for code blocks and formatting
+
+**Streaming Behavior**:
+- Append text chunks character by character
+- Smooth scroll to bottom on new content
+- "Typing indicator" when waiting for response
+
+#### 3.4 Right Panel - Dynamic Panel (`gui/widgets/dynamic_panel.py`)
+
+**Widget**: `QStackedWidget` with switchable sub-widgets
+
+**Sub-Widgets**:
+1. **EmptyStateWidget**: Default logo or instructions
+2. **ImagePreviewWidget**: `QLabel` with `QPixmap`, supports zoom
+3. **MarkdownPreviewWidget**: `QWebEngineView` rendering markdown
+4. **ChartWidget**: `QWebEngineView` with ECharts
+
+**ECharts Integration**:
+```javascript
+// HTML template with ECharts
+<div id="chart" style="width: 100%; height: 100%;"></div>
+<script>
+  var chart = echarts.init(document.getElementById('chart'));
+  chart.setOption(/* option_json from Python */);
+</script>
+```
+
+---
+
+### 4. State Management
+
+**Application States**:
+```python
+class AppState(Enum):
+    IDLE = "idle"                    # Waiting for user input
+    LISTENING = "listening"          # Microphone active, VAD monitoring
+    PROCESSING = "processing"        # ASR + CoPaw processing
+    SPEAKING = "speaking"            # TTS playback, mic muted
+```
+
+**State Transitions**:
+- `IDLE` → `LISTENING`: User starts speaking (VAD trigger)
+- `LISTENING` → `PROCESSING`: User stops speaking (1.5s silence)
+- `PROCESSING` → `SPEAKING`: CoPaw response received, TTS starts
+- `SPEAKING` → `IDLE`: TTS playback finished
+
+---
+
+## Technology Stack
+
+### Core Dependencies
+- **Python**: 3.10+
+- **GUI**: PyQt6
+- **Audio**: PyAudio, silero-vad (or webrtcvad)
+- **Network**: websockets (asyncio-based)
+- **Database**: SQLAlchemy, SQLite
+- **ASR**: dashscope (Alibaba Cloud) or openai
+- **TTS**: edge-tts
+- **Testing**: pytest, pytest-asyncio, pytest-qt
+- **Code Quality**: black, flake8, mypy
+
+### Optional Dependencies
+- **Web Rendering**: PyQt6-WebEngine (for charts and markdown)
+- **Audio Playback**: pygame or pydub
+- **Packaging**: PyInstaller
+
+---
+
+## Testing Strategy (TDD)
+
+### Test Categories
+
+1. **Unit Tests** (`tests/unit/`)
+   - Database operations
+   - ASR/TTS clients (with mocking)
+   - WebSocket client logic
+   - State machine transitions
+
+2. **Integration Tests** (`tests/integration/`)
+   - Audio → ASR → WebSocket pipeline
+   - WebSocket → UI rendering
+   - Full message flow with mock CoPaw server
+
+3. **GUI Tests** (`tests/gui/`)
+   - Use `pytest-qt` for widget testing
+   - Verify layout, signals, and user interactions
+   - Screenshot comparison for visual regression
+
+### Test-First Development Rule
+**For each feature**:
+1. Write failing test case first
+2. Implement minimal code to pass test
+3. Refactor while keeping tests green
+4. Only then mark feature as `passes: true` in feature_list.json
+
+---
+
+## Deployment & Packaging
+
+### Development Environment
+```bash
+# Clone and setup
+git clone https://github.com/agentscope-ai/CoPaw.git
+cd CoPaw/apps/copaw_desktop
+./init.sh
+
+# Run tests
+pytest tests/
+
+# Run application
+python main.py
+```
+
+### Production Packaging (PyInstaller)
+
+**Ubuntu**:
+```bash
+pyinstaller --onefile --windowed --name "CoPaw Desktop" main.py
+# Output: dist/CoPaw Desktop
+```
+
+**Windows**:
+```bash
+pyinstaller --onefile --windowed --name "CoPaw Desktop.exe" main.py
+# Output: dist/CoPaw Desktop.exe
+```
+
+### Platform-Specific Notes
+
+**Ubuntu**:
+- Install `portaudio19-dev` for PyAudio: `sudo apt-get install portaudio19-dev`
+- PulseAudio or PipeWire for audio system
+- X11 or Wayland display server support
+
+**Windows**:
+- PyAudio binary wheels available (no compilation needed)
+- DirectX for audio playback
+- Test on both Windows 10 and 11
+
+---
+
+## Configuration
+
+### Environment Variables
+
+```bash
+# CoPaw server endpoint
+COPAW_WS_URL=ws://127.0.0.1:8088/ws/desktop
+
+# Cloud ASR credentials
+DASHSCOPE_API_KEY=sk-xxx
+# or
+OPENAI_API_KEY=sk-xxx
+
+# Database path
+COPAW_DB_PATH=~/.copaw_desktop/sessions.db
+
+# Audio settings
+VAD_THRESHOLD=0.5
+SILENCE_DURATION=1.5
+```
+
+### Config File (`config.yaml`)
+
+```yaml
+audio:
+  sample_rate: 16000
+  channels: 1
+  vad_sensitivity: 0.5
+  silence_timeout: 1.5
+
+ui:
+  theme: "light"
+  font_size: 14
+  panel_ratios: [0.2, 0.4, 0.4]
+
+cloud:
+  asr_provider: "dashscope"
+  tts_provider: "edge-tts"
+  tts_voice: "zh-CN-XiaoxiaoNeural"
+```
+
+---
+
+## Future Enhancements (Out of Scope for v0.1)
+
+- Multi-language support (i18n)
+- Voice activity visualization (waveform)
+- Interrupt TTS playback with voice command
+- Sync sessions to cloud storage
+- Plugin system for custom widgets
+- Accessibility features (screen reader support)
+
+---
+
+## Success Metrics
+
+**Phase 1 Completion Criteria**:
+- [ ] All 12 features marked as `passes: true` in feature_list.json
+- [ ] Test coverage > 80%
+- [ ] Application runs on Ubuntu and Windows without crashes
+- [ ] End-to-end voice conversation works (speak → response → playback)
+- [ ] Right panel dynamically renders images and charts from CoPaw responses
+
+---
+
+**Document Version**: 1.0
+**Last Updated**: 2026-03-08
+**Author**: Claude (AI Assistant) + Human Collaborator

@@ -1,0 +1,184 @@
+[
+  {
+    "id": "feat-001",
+    "category": "Backend Infrastructure",
+    "description": "Implement DesktopChannel (BaseChannel subclass) in CoPaw core to expose WebSocket endpoint",
+    "test_case": "Use wscat or Python websocket client to connect to ws://127.0.0.1:8088/ws/desktop and exchange messages",
+    "steps": [
+      "1. Create DesktopChannel class inheriting from BaseChannel in copaw/app/channels/desktop/",
+      "2. Implement build_agent_request_from_native to convert WebSocket JSON to AgentRequest",
+      "3. Implement async start() to register WebSocket route on FastAPI app",
+      "4. Implement async send() to push messages back to WebSocket client",
+      "5. Register channel in ChannelManager config",
+      "6. Write integration test: connect, send text, receive echo"
+    ],
+    "passes": false
+  },
+  {
+    "id": "feat-002",
+    "category": "Core Engine",
+    "description": "Implement WebSocket client with auto-reconnect and message queue",
+    "test_case": "pytest tests/test_ws_client.py - test connect, disconnect, reconnect, send/receive",
+    "steps": [
+      "1. Create WebSocketClient class in core/network.py",
+      "2. Implement connect() with exponential backoff retry",
+      "3. Implement message queue (asyncio.Queue) for outgoing messages",
+      "4. Implement listener loop for incoming messages",
+      "5. Add connection state tracking and callbacks",
+      "6. Write unit tests with mock WebSocket server"
+    ],
+    "passes": false
+  },
+  {
+    "id": "feat-003",
+    "category": "Data Layer",
+    "description": "Implement SQLite session storage with SQLAlchemy ORM",
+    "test_case": "pytest tests/test_db.py - test CRUD operations and hourly grouping query",
+    "steps": [
+      "1. Define Session and Message models in core/models.py",
+      "2. Create SessionDB class with SQLAlchemy engine",
+      "3. Implement create_session(), get_sessions_grouped_by_hour()",
+      "4. Implement add_message(), get_messages(session_id)",
+      "5. Write comprehensive unit tests with in-memory SQLite",
+      "6. Verify hourly grouping logic with test data"
+    ],
+    "passes": false
+  },
+  {
+    "id": "feat-004",
+    "category": "Cloud Services",
+    "description": "Integrate cloud ASR (Automatic Speech Recognition) client",
+    "test_case": "pytest tests/test_asr.py - use sample.wav, assert correct text transcription",
+    "steps": [
+      "1. Create ASRClient abstract base class in core/asr.py",
+      "2. Implement AlibabaCloudASRClient (or OpenAI/Google variant)",
+      "3. Add audio format conversion (PCM to required format)",
+      "4. Implement transcribe(audio_bytes) -> str method",
+      "5. Add error handling and retry logic",
+      "6. Write tests with recorded sample audio files"
+    ],
+    "passes": false
+  },
+  {
+    "id": "feat-005",
+    "category": "Cloud Services",
+    "description": "Integrate cloud TTS (Text-to-Speech) client",
+    "test_case": "pytest tests/test_tts.py - synthesize text, verify audio file is valid",
+    "steps": [
+      "1. Create TTSClient abstract base class in core/tts.py",
+      "2. Implement EdgeTTSClient (free, high quality)",
+      "3. Implement synthesize(text) -> bytes method",
+      "4. Add voice selection and speed control parameters",
+      "5. Implement audio playback using pygame or pydub",
+      "6. Write tests to verify audio output format and duration"
+    ],
+    "passes": false
+  },
+  {
+    "id": "feat-006",
+    "category": "GUI Framework",
+    "description": "Initialize PyQt6 main window with fullscreen and 3-column layout",
+    "test_case": "Run main.py, verify window is fullscreen with visible left(20%), middle(40%), right(40%) panels",
+    "steps": [
+      "1. Create MainWindow class inheriting QMainWindow",
+      "2. Implement setup_ui() with QHBoxLayout splitter",
+      "3. Create placeholder widgets for Left/Middle/Right panels",
+      "4. Set window flags for fullscreen (showFullScreen())",
+      "5. Add stylesheet for panel borders and colors",
+      "6. Test on both Ubuntu and Windows"
+    ],
+    "passes": false
+  },
+  {
+    "id": "feat-007",
+    "category": "GUI Components",
+    "description": "Implement left panel SessionListWidget with hourly grouping",
+    "test_case": "Inject mock session data, verify tree structure shows date -> hour -> session correctly",
+    "steps": [
+      "1. Create SessionListWidget inheriting QTreeWidget",
+      "2. Implement data binding to SessionDB",
+      "3. Create hierarchical items: Date -> Hour -> Session",
+      "4. Implement click handler to emit session_selected signal",
+      "5. Add refresh mechanism when new session created",
+      "6. Write GUI test with QTest framework"
+    ],
+    "passes": false
+  },
+  {
+    "id": "feat-008",
+    "category": "GUI Components",
+    "description": "Implement middle panel ChatPanelWidget with message bubbles",
+    "test_case": "Send test messages via WebSocketClient, verify bubbles appear with correct styling",
+    "steps": [
+      "1. Create ChatPanelWidget with QScrollArea and QVBoxLayout",
+      "2. Create MessageBubble widget (user/assistant styles)",
+      "3. Implement add_message(role, content) method",
+      "4. Connect to WebSocketClient message_received signal",
+      "5. Implement streaming text append (typing effect)",
+      "6. Add auto-scroll to bottom on new message"
+    ],
+    "passes": false
+  },
+  {
+    "id": "feat-009",
+    "category": "GUI Components",
+    "description": "Implement right panel DynamicPanel for image and markdown preview",
+    "test_case": "Send widget action JSON with image_url, verify QPixmap renders correctly",
+    "steps": [
+      "1. Create DynamicPanel with QStackedWidget",
+      "2. Create ImagePreviewWidget using QLabel + QPixmap",
+      "3. Create MarkdownPreviewWidget using QWebEngineView",
+      "4. Implement switch_widget(widget_type, data) method",
+      "5. Parse CoPaw response JSON for widget actions",
+      "6. Handle image loading from URL with async download"
+    ],
+    "passes": false
+  },
+  {
+    "id": "feat-010",
+    "category": "GUI Components",
+    "description": "Implement right panel ChartWidget with ECharts integration",
+    "test_case": "Send ECharts option JSON, verify interactive chart renders in QWebEngineView",
+    "steps": [
+      "1. Create ChartWidget inheriting QWebEngineView",
+      "2. Embed ECharts library via CDN or local bundle",
+      "3. Implement render_chart(option_json) method via JavaScript injection",
+      "4. Create HTML template with ECharts container",
+      "5. Handle resize events to update chart",
+      "6. Test with various chart types (bar, line, pie)"
+    ],
+    "passes": false
+  },
+  {
+    "id": "feat-011",
+    "category": "Audio Pipeline",
+    "description": "Implement AudioRecorder with VAD (Voice Activity Detection)",
+    "test_case": "Speak into microphone, verify VAD cuts audio into sentences on 1.5s silence",
+    "steps": [
+      "1. Create AudioRecorder using PyAudio in separate QThread",
+      "2. Integrate Silero VAD or webrtcvad for speech detection",
+      "3. Implement circular buffer for audio frames",
+      "4. Detect speech start -> begin recording",
+      "5. Detect 1.5s silence -> emit audio_chunk signal",
+      "6. Add manual stop and mute controls"
+    ],
+    "passes": false
+  },
+  {
+    "id": "feat-012",
+    "category": "Integration",
+    "description": "Assemble full pipeline: Audio -> ASR -> WebSocket -> UI -> TTS with state management",
+    "test_case": "End-to-end test: speak into mic, verify chat bubble appears, TTS plays response",
+    "steps": [
+      "1. Create Application orchestrator class",
+      "2. Connect AudioRecorder.audio_chunk -> ASRClient.transcribe",
+      "3. Connect ASR result -> WebSocketClient.send",
+      "4. Connect WebSocketClient.message -> ChatPanelWidget + DynamicPanel",
+      "5. Connect CoPaw text response -> TTSClient.synthesize -> playback",
+      "6. Implement TTS playback mute on AudioRecorder (echo cancellation)",
+      "7. Add state machine for IDLE/LISTENING/PROCESSING/SPEAKING",
+      "8. Write integration test script"
+    ],
+    "passes": false
+  }
+]

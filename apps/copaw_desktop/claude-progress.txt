@@ -1,0 +1,13 @@
+=== Session 2026-03-08 ===
+Worked on: feat-000 - [Project Initialization & Architecture Planning]
+Status: Completed
+Changes:
+  - Created complete directory structure (src/copaw_desktop/{core,gui,utils}, tests/, scripts/)
+  - Generated feature_list.json with 12 TDD-driven features
+  - Created claude-progress.txt for session tracking
+  - Created app_spec.txt with detailed architecture documentation
+  - Created init.sh for cross-platform environment setup
+  - Configured pytest, black, and flake8
+  - Initialized Git repository with initial commit
+Next: feat-001 - Implement DesktopChannel (BaseChannel subclass) in CoPaw core to expose WebSocket endpoint
+=== Progress: 0/12 tests passing ===
