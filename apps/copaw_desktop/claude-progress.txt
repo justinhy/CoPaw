@@ -138,3 +138,21 @@ Changes:
   - Committed changes: feat: implement cloud TTS client integration
 Next: feat-006 - Initialize PyQt6 main window with fullscreen and 3-column layout
 === Progress: 5/12 tests passing ===
+
+=== Session 2026-03-08 (Morning) ===
+Worked on: feat-006 - [PyQt6 Main Window Implementation]
+Status: Completed
+Changes:
+  - Created MainWindow class in gui/main_window.py
+  - Implemented setup_ui() with QSplitter for resizable panels
+  - Created Left/Middle/Right panel widgets (20%/40%/40%)
+  - Added fullscreen support with ESC to exit and F11 to toggle
+  - Added dark theme stylesheet for panels
+  - Implemented resizeEvent to maintain panel proportions
+  - Updated main.py to use new MainWindow
+  - Created comprehensive GUI unit tests in tests/test_gui.py
+  - Updated gui/__init__.py to export MainWindow
+  - Updated feature_list.json: marked feat-006 as passing
+  - Committed changes: feat: implement PyQt6 main window with 3-column layout
+Next: feat-007 - Implement left panel SessionListWidget with hourly grouping
+=== Progress: 6/12 tests passing ===
