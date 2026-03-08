@@ -1132,9 +1132,9 @@ async def test_provider_connection(
         # fall through to model instantiation test
         pass
 
-    # Fallback: try to instantiate a chat model
-    # (may fail if no valid model exists)
-    # Use the first available model or a common one
+    # Fallback: try to instantiate a chat model and make a minimal request
+    # Since instantiation alone doesn't trigger a network call in many SDKs,
+    # we use httpx to make a real network request mimicking test_model_connection.
     test_model = None
     if len(defn.models) > 0:
         test_model = defn.models[0].id
@@ -1153,42 +1153,98 @@ async def test_provider_connection(
             test_model = fallback_models.get(provider_id, "gpt-3.5-turbo")
 
     try:
-        # Try to instantiate the model with the configured credentials
-        # Note: This part might still be sync if the SDK init is sync,
-        # but usually init is fast.
-        chat_model_class(
-            model_name=test_model,
-            api_key=api_key,
-            stream=True,
-            client_kwargs={"base_url": base_url} if base_url else {},
-        )
-
-        return {
-            "success": True,
-            "message": f"{defn.name} URL and API key are valid.",
-        }
-    except Exception as e:
-        error_msg = str(e)
-        if "401" in error_msg or "authentication" in error_msg.lower():
-            return {
-                "success": False,
-                "message": f"{defn.name} API key is invalid.",
-            }
-        elif "connection" in error_msg.lower():
-            return {
-                "success": False,
-                "message": (
-                    f"Cannot connect to {defn.name}. "
-                    f"Please check the Base URL."
-                ),
+        uses_anthropic_protocol = _uses_anthropic_protocol(provider_id, data, chat_model)
+        
+        if uses_anthropic_protocol:
+            chat_url = f"{base_url.rstrip('/')}/messages"
+            test_payload = {
+                "model": test_model,
+                "messages": [{"role": "user", "content": "hi"}],
+                "max_tokens": 1,
             }
         else:
-            return {
-                "success": False,
-                "message": (
-                    f"{defn.name} configuration test failed: {error_msg}"
-                ),
+            chat_url = f"{base_url.rstrip('/')}/chat/completions"
+            test_payload = {
+                "model": test_model,
+                "messages": [{"role": "user", "content": "hi"}],
+                "max_tokens": 1,
             }
+        
+        headers = _build_remote_provider_headers(
+            provider_id,
+            api_key,
+            chat_model_name=chat_model_class_name,
+            json_body=True,
+        )
+
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            response = await client.post(
+                chat_url,
+                json=test_payload,
+                headers=headers,
+            )
+
+            if response.status_code in (401, 403):
+                return {
+                    "success": False,
+                    "message": f"{defn.name} API key is invalid.",
+                }
+            elif response.status_code >= 500:
+                return {
+                    "success": False,
+                    "message": f"{defn.name} server error: {response.status_code}",
+                }
+            elif response.status_code == 400:
+                # 400 usually means bad request (e.g. invalid model), but auth passed.
+                # However, some providers like DashScope return 400 for bad API key or bad formats.
+                try:
+                    error_data = response.json()
+                    err_msg = str(error_data).lower()
+                    if "api key" in err_msg or "invalid" in err_msg and "key" in err_msg:
+                        return {
+                            "success": False,
+                            "message": f"{defn.name} API key is invalid.",
+                        }
+                    # DashScope invalid key error format check
+                    if "code" in error_data and error_data.get("code") in ("InvalidApiKey", "AccessDenied", "DataCenterAuthenticationFailed"):
+                        return {
+                            "success": False,
+                            "message": f"{defn.name} API key is invalid.",
+                        }
+                except Exception:
+                    pass
+                # Assume auth passed since we got 400 instead of 401
+                return {
+                    "success": True,
+                    "message": f"{defn.name} URL and API key are valid.",
+                }
+            else:
+                # 200 OK or 404 (model not found but url + auth valid)
+                return {
+                    "success": True,
+                    "message": f"{defn.name} URL and API key are valid.",
+                }
+
+    except httpx.ConnectError:
+        return {
+            "success": False,
+            "message": (
+                f"Cannot connect to {defn.name}. "
+                f"Please check the Base URL."
+            ),
+        }
+    except httpx.TimeoutException:
+        return {
+            "success": False,
+            "message": f"Connection to {defn.name} timed out.",
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "message": (
+                f"{defn.name} configuration test failed: {str(e)}"
+            ),
+        }
 
 
 # pylint: disable=too-many-return-statements,too-many-branches
