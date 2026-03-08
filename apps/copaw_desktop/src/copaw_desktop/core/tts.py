@@ -328,11 +328,24 @@ class OpenAITTSClient(TTSClient):
             )
             speed = max(0.25, min(4.0, speed))
         
-        # Validate text length
-        if len(text) > 4096:
-            logger.warning(
-                f"Text length {len(text)} exceeds 4096 chars, truncating"
-            )
+            # Play audio using AudioPlayer
+            from .audio_player import AsyncAudioPlayer
+            
+            # Create async player with current event loop
+            player = AsyncAudioPlayer()
+            
+            # Initialize and play
+            if await player.player.initialize():
+                await player.play_async(audio_bytes)
+                
+                # Wait for playback to complete
+                # In a real implementation, we'd wait for is_playing() to become False
+                # For now, just log the start
+                logger.info(f"Playing TTS audio: {len(audio_bytes)} bytes")
+                return True
+            else:
+                logger.warning("Failed to initialize audio player")
+                return False
             text = text[:4096]
         
         url = f"{self.base_url.rstrip('/')}/audio/speech"

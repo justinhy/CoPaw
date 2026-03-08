@@ -11,16 +11,7 @@ __email__ = "agentscope@alibaba-inc.com"
 
 from copaw_desktop.core.app_state import AppState
 from copaw_desktop.core.audio import AudioRecorder
-from copaw_desktop.core.network import (
-    WebSocketClient,
-    WebSocketConfig,
-    ConnectionState,
-)
-from copaw_desktop.core.database import (
-    SessionDB,
-    SessionModel,
-    MessageModel,
-)
+from copaw_desktop.core.audio_player import AsyncAudioPlayer
 from copaw_desktop.core.asr import (
     ASRClient,
     AlibabaCloudASRClient,
@@ -40,6 +31,7 @@ from copaw_desktop.core.tts import (
     TTSQuotaExceededError,
 )
 from copaw_desktop.core.application import Application, AppState as AppFSMState
+from copaw_desktop.core.database import SessionDB
 
 __all__ = [
     "AppState",
@@ -66,4 +58,5 @@ __all__ = [
     "TTSQuotaExceededError",
     "Application",
     "AppFSMState",
+    "AsyncAudioPlayer",
 ]
