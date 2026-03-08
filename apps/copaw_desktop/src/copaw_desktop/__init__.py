@@ -21,6 +21,15 @@ from copaw_desktop.core.database import (
     SessionModel,
     MessageModel,
 )
+from copaw_desktop.core.asr import (
+    ASRClient,
+    AlibabaCloudASRClient,
+    OpenAIASRClient,
+    ASRError,
+    ASRConnectionError,
+    ASRAuthenticationError,
+    ASRQuotaExceededError,
+)
 
 __all__ = [
     "AppState",
@@ -31,4 +40,11 @@ __all__ = [
     "SessionDB",
     "SessionModel",
     "MessageModel",
+    "ASRClient",
+    "AlibabaCloudASRClient",
+    "OpenAIASRClient",
+    "ASRError",
+    "ASRConnectionError",
+    "ASRAuthenticationError",
+    "ASRQuotaExceededError",
 ]
