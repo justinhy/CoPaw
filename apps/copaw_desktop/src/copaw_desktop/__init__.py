@@ -39,6 +39,7 @@ from copaw_desktop.core.tts import (
     TTSAuthenticationError,
     TTSQuotaExceededError,
 )
+from copaw_desktop.core.application import Application, AppState as AppFSMState
 
 __all__ = [
     "AppState",
@@ -63,4 +64,6 @@ __all__ = [
     "TTSConnectionError",
     "TTSAuthenticationError",
     "TTSQuotaExceededError",
+    "Application",
+    "AppFSMState",
 ]

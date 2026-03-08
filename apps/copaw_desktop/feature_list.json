@@ -192,6 +192,6 @@
       "7. Add state machine for IDLE/LISTENING/PROCESSING/SPEAKING",
       "8. Write integration test script"
     ],
-    "passes": false
+    "passes": true
   }
 ]
