@@ -95,14 +95,14 @@
     "description": "Implement left panel SessionListWidget with hourly grouping",
     "test_case": "Inject mock session data, verify tree structure shows date -> hour -> session correctly",
     "steps": [
-      "1. Create SessionListWidget inheriting QTreeWidget",
+      "1. Create SessionListWidget inheriting QWidget with QTreeWidget",
       "2. Implement data binding to SessionDB",
       "3. Create hierarchical items: Date -> Hour -> Session",
       "4. Implement click handler to emit session_selected signal",
       "5. Add refresh mechanism when new session created",
       "6. Write GUI test with QTest framework"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "feat-008",
