@@ -72,7 +72,7 @@
       "5. Implement audio playback using pygame or pydub",
       "6. Write tests to verify audio output format and duration"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "feat-006",

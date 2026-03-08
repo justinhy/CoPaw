@@ -30,6 +30,15 @@ from copaw_desktop.core.asr import (
     ASRAuthenticationError,
     ASRQuotaExceededError,
 )
+from copaw_desktop.core.tts import (
+    TTSClient,
+    EdgeTTSClient,
+    OpenAITTSClient,
+    TTSError,
+    TTSConnectionError,
+    TTSAuthenticationError,
+    TTSQuotaExceededError,
+)
 
 __all__ = [
     "AppState",
@@ -47,4 +56,11 @@ __all__ = [
     "ASRConnectionError",
     "ASRAuthenticationError",
     "ASRQuotaExceededError",
+    "TTSClient",
+    "EdgeTTSClient",
+    "OpenAITTSClient",
+    "TTSError",
+    "TTSConnectionError",
+    "TTSAuthenticationError",
+    "TTSQuotaExceededError",
 ]
