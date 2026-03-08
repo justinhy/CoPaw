@@ -103,3 +103,20 @@ Changes:
   - Committed changes: feat: implement SQLite session storage with SQLAlchemy ORM
 Next: feat-004 - Integrate cloud ASR (Automatic Speech Recognition) client
 === Progress: 3/12 tests passing ===
+
+=== Session 2026-03-08 (Late Night) ===
+Worked on: feat-004 - [Cloud ASR Client Integration]
+Status: Completed
+Changes:
+  - Created ASRClient abstract base class in core/asr.py
+  - Implemented AlibabaCloudASRClient with DashScope API support
+  - Implemented OpenAIASRClient with Whisper API support
+  - Added audio format conversion (PCM to WAV)
+  - Implemented transcribe() method with async/await
+  - Added error handling (ASRError hierarchy) and retry logic
+  - Created comprehensive unit tests in tests/test_asr.py
+  - Updated __init__.py to export new classes
+  - Updated feature_list.json: marked feat-004 as passing
+  - Committed changes: feat: implement cloud ASR client integration
+Next: feat-005 - Integrate cloud TTS (Text-to-Speech) client
+=== Progress: 4/12 tests passing ===
