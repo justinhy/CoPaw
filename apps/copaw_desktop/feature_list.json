@@ -87,7 +87,7 @@
       "5. Add stylesheet for panel borders and colors",
       "6. Test on both Ubuntu and Windows"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "feat-007",

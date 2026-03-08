@@ -1,66 +1,68 @@
 #!/usr/bin/env python3
-"""
-CoPaw Desktop - Main Application Entry Point
+"""CoPaw Desktop - Main Application Entry Point.
 
-This is a placeholder implementation. Full functionality will be implemented
-in feat-006 through feat-012.
+This module provides the application entry point and initialization logic.
 """
 
+import logging
 import sys
-from PyQt6.QtWidgets import QApplication, QMainWindow, QLabel, QWidget
-from PyQt6.QtCore import Qt
+from pathlib import Path
 
+from PyQt6.QtWidgets import QApplication
 
-class MainWindow(QMainWindow):
-    """Main application window - placeholder for feat-006."""
+# Set up logging
+log_dir = Path.home() / ".copaw_desktop" / "logs"
+log_dir.mkdir(parents=True, exist_ok=True)
 
-    def __init__(self) -> None:
-        """Initialize main window."""
-        super().__init__()
-        self.setWindowTitle("CoPaw Desktop")
-        self.setup_ui()
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.StreamHandler(sys.stdout),
+        logging.FileHandler(
+            log_dir / "desktop.log",
+            mode='a',
+            encoding='utf-8',
+        ),
+    ],
+)
 
-    def setup_ui(self) -> None:
-        """Setup UI components."""
-        # Placeholder: Will be replaced with 3-column layout in feat-006
-        central_widget = QWidget()
-        self.setCentralWidget(central_widget)
-
-        label = QLabel("CoPaw Desktop - Coming Soon!")
-        label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        label.setStyleSheet("font-size: 24px; color: #666;")
-        self.setCentralWidget(label)
-
-    def keyPressEvent(self, event) -> None:  # type: ignore
-        """Handle key press events.
-
-        Args:
-            event: Key event.
-        """
-        if event.key() == Qt.Key.Key_Escape:
-            self.close()
-        elif event.key() == Qt.Key.Key_F11:
-            if self.isFullScreen():
-                self.showNormal()
-            else:
-                self.showFullScreen()
+logger = logging.getLogger(__name__)
 
 
 def main() -> int:
     """Main entry point for CoPaw Desktop application.
-
+    
     Returns:
-        Exit code (0 for success).
+        Exit code (0 for success, non-zero for error).
     """
-    app = QApplication(sys.argv)
-    app.setApplicationName("CoPaw Desktop")
-    app.setApplicationVersion("0.1.0")
-
-    window = MainWindow()
-    window.show()
-    window.showFullScreen()  # Start in fullscreen mode
-
-    return app.exec()
+    try:
+        logger.info("Starting CoPaw Desktop...")
+        
+        # Create application
+        app = QApplication(sys.argv)
+        app.setApplicationName("CoPaw Desktop")
+        app.setApplicationVersion("0.1.0")
+        app.setOrganizationName("AgentScope")
+        
+        # Import here to avoid circular imports
+        from copaw_desktop.gui.main_window import MainWindow
+        
+        # Create and show main window
+        window = MainWindow(
+            title="CoPaw Desktop",
+            fullscreen=True,
+        )
+        window.show()
+        
+        logger.info("Application initialized successfully")
+        
+        # Run event loop
+        return app.exec()
+    
+    except Exception as e:
+        logger.exception(f"Application failed to start: {e}")
+        return 1
 
 
 if __name__ == "__main__":
