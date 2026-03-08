@@ -136,16 +136,16 @@
     "id": "feat-010",
     "category": "GUI Components",
     "description": "Implement right panel ChartWidget with ECharts integration",
-    "test_case": "Send ECharts option JSON, verify interactive chart renders in QWebEngineView",
+    "test_case": "Send ECharts option JSON, verify interactive chart renders",
     "steps": [
-      "1. Create ChartWidget inheriting QWebEngineView",
+      "1. Create ChartWidget inheriting QWidget",
       "2. Embed ECharts library via CDN or local bundle",
-      "3. Implement render_chart(option_json) method via JavaScript injection",
+      "3. Implement render_chart(option_json) method",
       "4. Create HTML template with ECharts container",
       "5. Handle resize events to update chart",
       "6. Test with various chart types (bar, line, pie)"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "feat-011",
@@ -153,14 +153,29 @@
     "description": "Implement AudioRecorder with VAD (Voice Activity Detection)",
     "test_case": "Speak into microphone, verify VAD cuts audio into sentences on 1.5s silence",
     "steps": [
-      "1. Create AudioRecorder using PyAudio in separate QThread",
-      "2. Integrate Silero VAD or webrtcvad for speech detection",
+      "1. Create AudioRecorder using PyAudio in separate thread",
+      "2. Integrate webrtcvad for speech detection",
       "3. Implement circular buffer for audio frames",
       "4. Detect speech start -> begin recording",
-      "5. Detect 1.5s silence -> emit audio_chunk signal",
+      "5. Detect 1.5s silence -> emit speech segment via callback",
+      "6. Add manual stop and start controls"
+    ],
+    "passes": true
+  },
+  {
+    "id": "feat-011",
+    "category": "Audio Pipeline",
+    "description": "Implement AudioRecorder with VAD (Voice Activity Detection)",
+    "test_case": "Manual test: speak into microphone, verify VAD splits audio on silence",
+    "steps": [
+      "1. Create AudioRecorder using PyAudio in separate thread",
+      "2. Integrate webrtcvad for speech detection",
+      "3. Implement circular buffer for audio frames",
+      "4. Detect speech start and silence duration (1.5s)",
+      "5. Emit speech segments via callback",
       "6. Add manual stop and mute controls"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "feat-012",

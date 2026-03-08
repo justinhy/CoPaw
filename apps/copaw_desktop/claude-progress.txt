@@ -188,3 +188,47 @@ Changes:
   - Committed changes: feat: implement ChatPanelWidget with message bubbles
 Next: feat-009 - Implement right panel DynamicPanel for image and markdown preview
 === Progress: 8/12 tests passing ===
+
+=== Session 2026-03-08 (Late Morning) ===
+Worked on: feat-009 - [DynamicPanel Implementation]
+Status: Completed
+Changes:
+  - Created DynamicPanelWidget with QStackedWidget for content switching
+  - Implemented ImagePreviewWidget with QPixmap
+  - Implemented MarkdownPreviewWidget with QLabel
+  - Added show_image() and show_markdown() methods
+  - Updated gui/__init__.py to export DynamicPanelWidget
+  - Updated feature_list.json: marked feat-009 as passing
+  - Committed changes: feat: complete core GUI components and cloud services
+Next: feat-010 - Implement ChartWidget with ECharts integration
+=== Progress: 9/12 tests passing ===
+
+=== Session 2026-03-08 (Early Afternoon) ===
+Worked on: feat-010 - [ChartWidget Implementation]
+Status: Completed
+Changes:
+  - Created ChartWidget with QWebEngineView for chart rendering
+  - Integrated ECharts library via CDN
+  - Implemented render_chart(option_json) method
+  - Added fallback UI when WebEngine unavailable
+  - Implemented resize_chart() and clear_chart() methods
+  - Added chart_rendered signal
+  - Updated gui/__init__.py to export ChartWidget
+  - Updated feature_list.json: marked feat-010 as passing
+Next: feat-011 - Implement AudioRecorder with VAD
+=== Progress: 10/12 tests passing ===
+
+=== Session 2026-03-08 (Afternoon) ===
+Worked on: feat-011 - [AudioRecorder Implementation]
+Status: Completed
+Changes:
+  - Created AudioRecorder class in core/audio.py
+  - Integrated webrtcvad for speech detection
+  - Implemented circular buffer for audio frames
+  - Implemented speech/silence detection with 1.5s threshold
+  - Added on_speech_detected callback for speech segments
+  - Implemented start() and stop() methods
+  - Added manual control and mute support
+  - Updated feature_list.json: marked feat-011 as passing
+Next: feat-012 - Assemble full pipeline integration
+=== Progress: 11/12 tests passing ===
