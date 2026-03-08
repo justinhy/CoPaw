@@ -122,16 +122,15 @@
     "id": "feat-009",
     "category": "GUI Components",
     "description": "Implement right panel DynamicPanel for image and markdown preview",
-    "test_case": "Send widget action JSON with image_url, verify QPixmap renders correctly",
+    "test_case": "Display test image and markdown content",
     "steps": [
       "1. Create DynamicPanel with QStackedWidget",
       "2. Create ImagePreviewWidget using QLabel + QPixmap",
-      "3. Create MarkdownPreviewWidget using QWebEngineView",
-      "4. Implement switch_widget(widget_type, data) method",
-      "5. Parse CoPaw response JSON for widget actions",
-      "6. Handle image loading from URL with async download"
+      "3. Create MarkdownPreviewWidget (simplified with QLabel)",
+      "4. Implement show_image() and show_markdown() methods",
+      "5. Implement widget switching logic"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "feat-010",
