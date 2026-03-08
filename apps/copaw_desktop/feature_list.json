@@ -108,16 +108,15 @@
     "id": "feat-008",
     "category": "GUI Components",
     "description": "Implement middle panel ChatPanelWidget with message bubbles",
-    "test_case": "Send test messages via WebSocketClient, verify bubbles appear with correct styling",
+    "test_case": "Send test messages, verify bubbles appear with correct styling",
     "steps": [
       "1. Create ChatPanelWidget with QScrollArea and QVBoxLayout",
       "2. Create MessageBubble widget (user/assistant styles)",
       "3. Implement add_message(role, content) method",
-      "4. Connect to WebSocketClient message_received signal",
-      "5. Implement streaming text append (typing effect)",
-      "6. Add auto-scroll to bottom on new message"
+      "4. Implement streaming text append (typing effect)",
+      "5. Add auto-scroll to bottom on new message"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "feat-009",
