@@ -97,6 +97,12 @@ class VoiceChannelConfig(BaseChannelConfig):
     welcome_greeting: str = "Hi! This is CoPaw. How can I help you?"
 
 
+class DesktopConfig(BaseChannelConfig):
+    """Desktop channel: WebSocket endpoint for desktop clients."""
+
+    enabled: bool = True  # Desktop channel is enabled by default
+
+
 class ChannelConfig(BaseModel):
     """Built-in channel configs; extra keys allowed for plugin channels."""
 
@@ -110,6 +116,8 @@ class ChannelConfig(BaseModel):
     telegram: TelegramConfig = TelegramConfig()
     console: ConsoleConfig = ConsoleConfig()
     voice: VoiceChannelConfig = VoiceChannelConfig()
+    desktop: DesktopConfig = DesktopConfig()
+    desktop: DesktopConfig = DesktopConfig()
 
 
 class LastApiConfig(BaseModel):

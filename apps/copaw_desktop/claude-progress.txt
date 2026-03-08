@@ -1,4 +1,4 @@
-=== Session 2026-03-08 ===
+=== Session 2026-03-08 (Morning) ===
 Worked on: feat-000 - [Project Initialization & Architecture Planning]
 Status: Completed
 Changes:
@@ -11,3 +11,24 @@ Changes:
   - Initialized Git repository with initial commit
 Next: feat-001 - Implement DesktopChannel (BaseChannel subclass) in CoPaw core to expose WebSocket endpoint
 === Progress: 0/12 tests passing ===
+
+=== Session 2026-03-08 (Afternoon) ===
+Worked on: feat-001 - [DesktopChannel Implementation]
+Status: Completed
+Changes:
+  - Created DesktopChannel class in src/copaw/app/channels/desktop/channel.py
+  - Implemented DesktopConnectionManager for WebSocket connection lifecycle
+  - Implemented build_agent_request_from_native to convert JSON to AgentRequest
+  - Implemented async start()/stop() for channel lifecycle
+  - Implemented async send() to push messages to WebSocket clients
+  - Implemented async handle_websocket() for WebSocket message processing
+  - Created desktop_router in src/copaw/app/routers/desktop.py
+  - Registered desktop_router in src/copaw/app/_app.py
+  - Added 'desktop' to BUILTIN_CHANNEL_TYPES in schema.py
+  - Added 'desktop' to _BUILTIN_SPECS in registry.py
+  - Created DesktopConfig in src/copaw/config/config.py
+  - Added 'desktop' field to ChannelConfig
+  - Created integration tests in tests/test_desktop_channel.py
+  - Updated feature_list.json: marked feat-001 as passing
+Next: feat-002 - Implement WebSocket client with auto-reconnect and message queue
+=== Progress: 1/12 tests passing ===

@@ -25,6 +25,7 @@ _BUILTIN_SPECS: dict[str, tuple[str, str]] = {
     "telegram": (".telegram", "TelegramChannel"),
     "console": (".console", "ConsoleChannel"),
     "voice": (".voice", "VoiceChannel"),
+    "desktop": (".desktop", "DesktopChannel"),
 }
 
 # Required channels must load; failures are raised, not skipped.

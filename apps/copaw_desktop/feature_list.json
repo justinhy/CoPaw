@@ -3,7 +3,7 @@
     "id": "feat-001",
     "category": "Backend Infrastructure",
     "description": "Implement DesktopChannel (BaseChannel subclass) in CoPaw core to expose WebSocket endpoint",
-    "test_case": "Use wscat or Python websocket client to connect to ws://127.0.0.1:8088/ws/desktop and exchange messages",
+    "test_case": "Use wscat or Python websocket client to connect to ws://127.0.0.1:8088/desktop/ws and exchange messages",
     "steps": [
       "1. Create DesktopChannel class inheriting from BaseChannel in copaw/app/channels/desktop/",
       "2. Implement build_agent_request_from_native to convert WebSocket JSON to AgentRequest",
@@ -12,7 +12,7 @@
       "5. Register channel in ChannelManager config",
       "6. Write integration test: connect, send text, receive echo"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "feat-002",

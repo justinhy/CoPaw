@@ -37,6 +37,7 @@ BUILTIN_CHANNEL_TYPES = (
     "telegram",
     "console",
     "voice",
+    "desktop",
 )
 
 # ChannelType is str to allow plugin channels; built-in set above.
