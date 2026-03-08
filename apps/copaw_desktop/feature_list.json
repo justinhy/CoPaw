@@ -18,7 +18,7 @@
     "id": "feat-002",
     "category": "Core Engine",
     "description": "Implement WebSocket client with auto-reconnect and message queue",
-    "test_case": "pytest tests/test_ws_client.py - test connect, disconnect, reconnect, send/receive",
+    "test_case": "pytest apps/copaw_desktop/tests/test_network.py - test connect, disconnect, reconnect, send/receive",
     "steps": [
       "1. Create WebSocketClient class in core/network.py",
       "2. Implement connect() with exponential backoff retry",
@@ -27,7 +27,7 @@
       "5. Add connection state tracking and callbacks",
       "6. Write unit tests with mock WebSocket server"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "feat-003",

@@ -11,12 +11,18 @@ __email__ = "agentscope@alibaba-inc.com"
 
 from copaw_desktop.core.app_state import AppState
 from copaw_desktop.core.audio import AudioRecorder
-from copaw_desktop.core.network import WebSocketClient
+from copaw_desktop.core.network import (
+    WebSocketClient,
+    WebSocketConfig,
+    ConnectionState,
+)
 from copaw_desktop.core.database import SessionDB
 
 __all__ = [
     "AppState",
     "AudioRecorder",
     "WebSocketClient",
+    "WebSocketConfig",
+    "ConnectionState",
     "SessionDB",
 ]
