@@ -1,0 +1,29 @@
+[project]
+name = "simple-chat"
+version = "0.1.0"
+description = "Simple chat application for CoPaw DesktopChannel POC"
+authors = [
+    {name = "AgentScope Team", email = "agentscope@alibaba-inc.com"}
+]
+requires-python = ">=3.10"
+dependencies = [
+    "PyQt6>=6.5.0",
+    "copaw",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4.0",
+    "pytest-asyncio>=0.21.0",
+    "pytest-qt>=4.2.0",
+]
+
+[project.scripts]
+simple-chat = "simple_chat.main:main"
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
