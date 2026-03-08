@@ -120,3 +120,21 @@ Changes:
   - Committed changes: feat: implement cloud ASR client integration
 Next: feat-005 - Integrate cloud TTS (Text-to-Speech) client
 === Progress: 4/12 tests passing ===
+
+=== Session 2026-03-08 (Early Morning) ===
+Worked on: feat-005 - [Cloud TTS Client Integration]
+Status: Completed
+Changes:
+  - Created TTSClient abstract base class in core/tts.py
+  - Implemented EdgeTTSClient with free Microsoft Edge TTS
+  - Implemented OpenAITTSClient with GPT-4 Audio API
+  - Added synthesize(text) -> bytes async method
+  - Added voice selection and speed control parameters
+  - Implemented save_audio() utility method
+  - Added error handling (TTSError hierarchy)
+  - Created comprehensive unit tests in tests/test_tts.py
+  - Updated __init__.py to export TTS classes
+  - Updated feature_list.json: marked feat-005 as passing
+  - Committed changes: feat: implement cloud TTS client integration
+Next: feat-006 - Initialize PyQt6 main window with fullscreen and 3-column layout
+=== Progress: 5/12 tests passing ===
