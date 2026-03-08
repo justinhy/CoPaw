@@ -33,7 +33,7 @@
     "id": "feat-003",
     "category": "Data Layer",
     "description": "Implement SQLite session storage with SQLAlchemy ORM",
-    "test_case": "pytest tests/test_db.py - test CRUD operations and hourly grouping query",
+    "test_case": "pytest apps/copaw_desktop/tests/test_database.py - test CRUD operations and hourly grouping query",
     "steps": [
       "1. Define Session and Message models in core/models.py",
       "2. Create SessionDB class with SQLAlchemy engine",
@@ -42,7 +42,7 @@
       "5. Write comprehensive unit tests with in-memory SQLite",
       "6. Verify hourly grouping logic with test data"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "feat-004",

@@ -16,7 +16,11 @@ from copaw_desktop.core.network import (
     WebSocketConfig,
     ConnectionState,
 )
-from copaw_desktop.core.database import SessionDB
+from copaw_desktop.core.database import (
+    SessionDB,
+    SessionModel,
+    MessageModel,
+)
 
 __all__ = [
     "AppState",
@@ -25,4 +29,6 @@ __all__ = [
     "WebSocketConfig",
     "ConnectionState",
     "SessionDB",
+    "SessionModel",
+    "MessageModel",
 ]
