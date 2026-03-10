@@ -11,13 +11,12 @@ from typing import Optional
 
 from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtWidgets import (
-    QApplication,
-    QWidget,
     QVBoxLayout,
     QHBoxLayout,
     QTextEdit,
     QPushButton,
     QLabel,
+    QLineEdit,
 )
 
 from .channel_client import DesktopChannelClient
@@ -38,13 +37,20 @@ class ChatWindow(QWidget):
     message_sent = pyqtSignal(str)  # Emitted when user sends message
     message_received = pyqtSignal(dict)  # Emitted when message received
     
-    def __init__(self, ws_url: str = "ws://127.0.0.1:8088/desktop/ws") -> None:
+    def __init__(self, ws_url: str = None) -> None:
         """Initialize chat window.
         
         Args:
-            ws_url: WebSocket URL for DesktopChannel.
+            ws_url: WebSocket URL for DesktopChannel. If None, reads from
+                   COPAW_SERVER_URL env var or defaults to localhost.
         """
         super().__init__()
+        
+        # Get server URL from: 1) parameter, 2) env var, 3) default
+        import os
+        if ws_url is None:
+            server_url = os.getenv("COPAW_SERVER_URL", "127.0.0.1:8088")
+            ws_url = f"ws://{server_url}/desktop/ws"
         
         self.ws_url = ws_url
         self._client: Optional[DesktopChannelClient] = None
@@ -54,12 +60,43 @@ class ChatWindow(QWidget):
         
         logger.info("ChatWindow initialized")
     
+    def _extract_server_from_url(self) -> str:
+        """Extract server address from ws_url.
+        
+        Returns:
+            Server address (e.g., "127.0.0.1:8088").
+        """
+        # Extract server from ws_url like "ws://127.0.0.1:8088/desktop/ws"
+        if self.ws_url:
+            try:
+                # Remove protocol and path
+                server = self.ws_url.replace("ws://", "").replace("wss://", "")
+                server = server.split("/")[0]
+                return server
+            except Exception:
+                return "127.0.0.1:8088"
+        return "127.0.0.1:8088"
+    
     def _setup_ui(self) -> None:
         """Set up UI components."""
         # Main layout
         layout = QVBoxLayout(self)
         layout.setContentsMargins(10, 10, 10, 10)
         layout.setSpacing(10)
+        
+        # Server configuration
+        server_layout = QHBoxLayout()
+        
+        server_label = QLabel("Server:")
+        server_layout.addWidget(server_label)
+        
+        self.server_input = QLineEdit()
+        self.server_input.setPlaceholderText("127.0.0.1:8088")
+        self.server_input.setText(self._extract_server_from_url())
+        self.server_input.setObjectName("serverInput")
+        server_layout.addWidget(self.server_input)
+        
+        layout.addLayout(server_layout)
         
         # Status bar
         status_layout = QHBoxLayout()
@@ -150,10 +187,10 @@ class ChatWindow(QWidget):
             }
             
             QPushButton:disabled {
-                background-color: #cccccc;
-            }
-        """)
-    
+                 background-color: #cccccc;
+             }
+         """)
+     
     def _toggle_connection(self) -> None:
         """Toggle connection to DesktopChannel."""
         if self._client and self._client.is_connected():
@@ -167,9 +204,16 @@ class ChatWindow(QWidget):
         self.connect_button.setEnabled(False)
         
         try:
+            # Get server URL from input
+            server_addr = self.server_input.text.strip()
+            if not server_addr:
+                server_addr = "127.0.0.1:8088"
+            
+            ws_url = f"ws://{server_addr}/desktop/ws"
+            
             # Create client
             self._client = DesktopChannelClient(
-                ws_url=self.ws_url,
+                ws_url=ws_url,
                 on_message=self._on_message_received,
                 on_error=self._on_error,
             )
@@ -183,8 +227,9 @@ class ChatWindow(QWidget):
                 self.connect_button.setText("Disconnect")
                 self.connect_button.setEnabled(True)
                 self.send_button.setEnabled(True)
+                self.server_input.setEnabled(False)
                 
-                self._append_message("System", "Connected to CoPaw!")
+                self._append_message("System", f"Connected to CoPaw at {server_addr}")
             else:
                 self.status_label.setText("Connection Failed")
                 self.status_label.setStyleSheet("color: #dc3545;")
@@ -233,7 +278,7 @@ class ChatWindow(QWidget):
         Args:
             text: Message text to send.
         """
-        success = await self._client.send_text(text)
+        success = await self._client.send_message(text)
         
         if success:
             self._append_message("You", text)
